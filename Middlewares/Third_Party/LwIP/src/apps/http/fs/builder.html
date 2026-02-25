@@ -1,0 +1,314 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<link href="dragula.min.css" rel="stylesheet" type="text/css" />
+<link href="builder.css" rel="stylesheet" type="text/css" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web конфигуратор</title>
+</head>
+<body>
+<div class="parent">
+<div style="display:flex; width:100%">
+<div style="width:50%; padding:5px;">
+<input placeholder="" id="count" type="number" min="1" max="4" value="1" required>
+</div>
+<div style="width:50%; padding:5px;">
+<button id="button1" onclick="changeGroup()">Установить количество конвейеров</button>
+</div>
+</div>
+<div style="padding: 5px; 0px;">
+<button id="button1" onclick="createConfig()">Применить конфигурацию</button>
+</div>
+</div>
+<div class="parent">
+<div id="notice"></div>
+</div>
+<div class="parent">
+<div id="def0" class="container" style="width:100%">
+Основные элементы конфигурации конвейера
+<div>
+Камера<input placeholder="Имя не более 8 символов" name="camera" type="text" maxlength="8" value="camera" pattern="[^а-яА-ЯёЁ]+" required>
+</div>
+<div>
+Источник питания<input placeholder="Имя не более 8 символов" name="supply" type="text" maxlength="8" value="supply" pattern="[^а-яА-ЯёЁ]+" required>
+</div>
+<div>
+Реле<input placeholder="Имя не более 8 символов" name="relay" type="text" maxlength="8" value="relay" pattern="[^а-яА-ЯёЁ]+" required>
+</div>
+<div>
+АСП датчик<input placeholder="Имя не более 8 символов" name="sensor" type="text" maxlength="8" value="sensor" pattern="[^а-яА-ЯёЁ]+" required>
+</div>
+</div>
+<div class="wrapper">
+<div id="conv1" class="container" style="visibility:visible; min-height: 200px;">Конвейер 1</div>
+<div id="conv2" class="container" style="visibility:hidden; min-height: 200px;">Конвейер 2</div>
+</div>
+<div class="wrapper">
+<div id="conv3" class="container" style="visibility:hidden; min-height: 200px;">Конвейер 3</div>
+<div id="conv4" class="container" style="visibility:hidden; min-height: 200px;">Конвейер 4</div>
+</div>
+</div>
+</body>
+</html>
+<script src='dragula.min.js'></script>
+<script>
+dragula([document.querySelector('#def0'), document.querySelector('#conv1'), document.querySelector('#conv2'), document.querySelector('#conv3'), document.querySelector('#conv4')],
+{
+copy: function (el, source) {
+return source === document.querySelector('#def0')
+},
+accepts: function (el, target) {
+return target !== document.querySelector('#def0')
+},
+removeOnSpill: function (el, target) {
+return target !== document.querySelector('#def0')
+}
+});
+function createConfig() {
+let pattern = "[а-яА-ЯёЁ]";
+let config = '{"group":[';
+let el2 = '';
+let el3 = '';
+let elCount2 = 0;
+let elCount3 = 0;
+let validate_status = 0;
+let notify = document.getElementById("notice");
+notify.textContent = "";
+let transporter = 0;
+for (let i = 1; i < 3; i++) {
+let el = document.getElementById("conv"+i);
+if(el.style.visibility =="visible") {
+transporter++;
+}
+}
+if (transporter == 0) {
+validate_status++;
+notify.innerHTML += "Количество конвейеров должно быть больше нуля<br>";
+}
+let en = 0;
+for (let n = 1; n < 3; n++) {
+let camera_array = new Array();
+let supply_array = new Array();
+let relay_array = new Array();
+let sensor_array = new Array();
+const grp = document.getElementById("conv"+n);
+const elem = grp.getElementsByTagName("input");
+elCount2 = 0;
+el2 = '';
+el3 = '{"camera":[';
+elCount3 = 0;
+if (elem.length == 0 && grp.style.visibility =="visible") {
+en = 1;
+} else {
+en = 0;
+}
+for (let i = 0; i < elem.length; i++) {
+const item = elem[i];
+if (item.name == "camera") {
+if (item.value != ""){
+if (item.value.match(pattern)) {
+validate_status++;
+notify.innerHTML += "Проверьте имя элемента \"Камера\" (не используйте кириллицу)<br>";
+}
+if (camera_array.length == 0) {
+camera_array.push(item.value);
+} else {
+for (let camera_e of camera_array) {
+if (camera_e == item.value) {
+validate_status++;
+notify.innerHTML += "Повторное использование имени "+camera_e+" Камеры<br>";
+}
+}
+camera_array.push(item.value);
+}
+el3 += '"'+item.value+'",';
+} else {
+validate_status++;
+notify.innerHTML += "Проверьте имя элемента \"Камера\"<br>";
+}
+elCount3++;
+}
+}
+if (elCount3 == 0 && en == 1) {
+validate_status++;
+notify.innerHTML += "В конфигурации отсутствует элемент \"Камера\"<br>";
+}
+if (elCount3 > 0) {
+elCount2++;
+el3 = el3.slice(0, -1);
+el3 += ']';
+el2 += el3;
+}
+el3 = ',"supply":[';
+elCount3 = 0;
+if (elem.length == 0 && grp.style.visibility =="visible") {
+en = 1;
+} else {
+en = 0;
+}
+for (let i = 0; i < elem.length; i++) {
+const item = elem[i];
+if (item.name == "supply") {
+if (item.value != ""){
+if (item.value.match(pattern)) {
+validate_status++;
+notify.innerHTML += "Проверьте имя элемента \"Источник питания\" (не используйте кириллицу)<br>";
+}
+if (supply_array.length == 0) {
+supply_array.push(item.value);
+} else {
+for (let supply_e of supply_array) {
+if (supply_e == item.value) {
+validate_status++;
+notify.innerHTML += "Повторное использование имени "+supply_e+" Источника питания<br>";
+}
+}
+supply_array.push(item.value);
+}
+el3 += '"'+item.value+'",';
+} else {
+validate_status++;
+notify.innerHTML += "Проверьте имя элемента \"Источник питания\"<br>";
+}
+elCount3++;
+}
+}
+if (elCount3 == 0 && en == 1) {
+validate_status++;
+notify.innerHTML += "В конфигурации отсутствует элемент \"Источник питания\"<br>";
+}
+if (elCount3 > 0) {
+elCount2++;
+el3 = el3.slice(0, -1);
+el3 += ']';
+el2 += el3;
+}
+el3 = ',"relay":[';
+elCount3 = 0;
+if (elem.length == 0) {
+en = 1;
+} else {
+en = 0;
+}
+for (let i = 0; i < elem.length; i++) {
+const item = elem[i];
+if (item.name == "relay") {
+if (item.value != ""){
+if (item.value.match(pattern)) {
+validate_status++;
+notify.innerHTML += "Проверьте имя элемента \"Реле\" (не используйте кириллицу)<br>";
+}
+if (relay_array.length == 0) {
+relay_array.push(item.value);
+} else {
+for (let relay_e of relay_array) {
+if (relay_e == item.value) {
+validate_status++;
+notify.innerHTML += "Повторное использование имени "+relay_e+" Реле<br>";
+}
+}
+relay_array.push(item.value);
+}
+el3 += '"'+item.value+'",';
+} else {
+validate_status++;
+notify.innerHTML += "Проверьте имя элемента \"Реле\"<br>";
+}
+elCount3++;
+}
+}
+if (elCount3 > 0) {
+elCount2++;
+el3 = el3.slice(0, -1);
+el3 += ']';
+el2 += el3;
+}
+el3 = ',"sensor":[';
+elCount3 = 0;
+if (elem.length == 0) {
+en = 1;
+} else {
+en = 0;
+}
+for (let i = 0; i < elem.length; i++) {
+const item = elem[i];
+if (item.name == "sensor") {
+if (item.value != ""){
+if (item.value.match(pattern)) {
+validate_status++;
+notify.innerHTML += "Проверьте имя элемента \"АСП датчик\" (не используйте кириллицу)<br>";
+}
+if (sensor_array.length == 0) {
+sensor_array.push(item.value);
+} else {
+for (let sensor_e of sensor_array) {
+if (sensor_e == item.value) {
+validate_status++;
+notify.innerHTML += "Повторное использование имени "+sensor_e+" АСП датчика<br>";
+}
+}
+sensor_array.push(item.value);
+}
+el3 += '"'+item.value+'",';
+} else {
+validate_status++;
+notify.innerHTML += "Проверьте имя элемента \"АСП датчик\"<br>";
+}
+elCount3++;
+}
+}
+if (elCount3 > 0) {
+elCount2++;
+el3 = el3.slice(0, -1);
+el3 += ']';
+el2 += el3;
+}
+el2 += "},";
+if (elCount2 > 0) {
+config += el2;
+}
+}
+config = config.slice(0, -1);
+config += "]}";
+if (validate_status > 0) {
+document.getElementById("notice").style.color = "red";
+alert("Конфигурация не сохранена.");
+} else {
+let xhr = new XMLHttpRequest();
+xhr.open("POST", "/configuration", true);
+xhr.setRequestHeader("Content-Type","application/json;charset=UTF-8");
+xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+xhr.timeout = 10000;
+xhr.onload = function() {
+if (xhr.status != 200) {
+console.log("Error "+xhr.status+":"+xhr.statusText);
+alert("Конфигурация не сохранена.");
+} else {
+console.log("Data transferred");
+alert("Конфигурация сохранена.\nСистема перенаправит Вас на страницу настроек.");
+setTimeout(function() { window.location.href = '/';}, 5000);
+}
+};
+xhr.onerror = function() {
+console.log("Request failed");
+};
+xhr.send(config);
+delete xhr;
+}
+}
+function changeGroup() {
+let count = parseInt(document.getElementById("count").value);
+if (count < 0) {
+count = 1;
+}
+for (let i = 0; i < 2; i++) {
+let el = document.querySelector("#conv"+(i+1));
+if (i < count) {
+el.style.visibility ="visible";
+} else {
+el.style.visibility ="hidden";
+}
+}
+}
+</script>

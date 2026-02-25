@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style type="text/css">
+body, input, button, select {
+font-family: Georgia, Times, Times New Roman, sans-serif ;
+font-style: normal;
+font-size: 15px;
+color: #1F2833;
+}
+input[type="text"] {
+width: 100%;
+box-sizing: border-box;
+}
+input[type="button"] {
+width: 150px;
+}
+input:invalid {
+background: #ffd8d8;
+}
+input:valid {
+background: #d8ffd8;
+}
+.hide {
+height: 0;
+transition: all 3s;
+display: none;
+}
+button {
+width: 150px;
+}
+.right_col {
+width: 40%;
+}
+.left_col {
+width: 60%;
+}
+.frame {
+display: none;
+width: 100%;
+}
+.pident {
+width: 100%;
+display: flex;
+justify-content: space-between;
+}
+.ident {
+text-align: center;
+background-color: #dff2ef;
+}
+.elem0 {
+display: flex;
+width: 100%;
+margin-bottom: 5px;
+margin-right: 0px;
+background-color: #dff2ef;
+}
+</style>
+<title>Web конфигуратор</title>
+</head>
+<body style="width:640px;">
+<div id="usk" style="width:100%;">
+<hr/>
+<div class="pident">
+<div id="ver" class="ident"></div>
+<div id="ser" class="ident"></div>
+<div id="mac" class="ident"></div>
+<div id="uptime" class="ident"></div>
+</div>
+<hr/>
+<div class="elem0">
+<div class="left_col">
+<label for="usk_ip">IP адрес устройства (192.168.71.70)</label>
+</div>
+<div class="right_col">
+<input type="text" id="usk_ip" name="ip" placeholder="Укажите IP" required >
+</div>
+</div>
+<div class="elem0">
+<div class="left_col">
+<label for="usk_mask">Маска подсети (255.255.255.0)</label>
+</div>
+<div class="right_col">
+<input type="text" id="usk_mask" name="ip" placeholder="Укажите IP" required >
+</div>
+</div>
+<div class="elem0">
+<div class="left_col">
+<label for="usk_gateway">Адрес шлюза (192.168.71.1)</label>
+</div>
+<div class="right_col">
+<input type="text" id="usk_gateway" name="ip" placeholder="Укажите IP" required >
+</div>
+</div>
+<div class="elem0">
+<div class="left_col">
+<label for="urm_id">УРМ Modbus адрес (2)</label>
+</div>
+<div class="right_col">
+<input type="text" id="urm_id" name="id" placeholder="Укажите ID" required >
+</div>
+</div>
+<div class="elem0">
+<div class="left_col">
+<label for="umvh_id">УМВХ Modbus адрес (1)</label>
+</div>
+<div class="right_col">
+<input type="text" id="umvh_id" name="id" placeholder="Укажите ID" required >
+</div>
+</div>
+<div class="elem0">
+<div class="left_col">
+<label for="port_camera">Modbus TCP порт камер (1502)</label>
+</div>
+<div class="right_col">
+<input type="text" id="port_camera" name="port" placeholder="Укажите порт" required pattern="\d{1,5}" >
+</div>
+</div>
+<div class="elem0">
+<div class="left_col">
+<label for="rate">Время между опросом, мс [300 - 10000]</label>
+</div>
+<div class="right_col">
+<input type="text" id="rate" name="port" placeholder="Укажите порт" required pattern="\d{1,5}" >
+</div>
+</div>
+<div class="elem0">
+<div class="left_col">
+<label for="timeout">Время ожидания ответа, мс [500 - 10000]</label>
+</div>
+<div class="right_col">
+<input type="text" id="timeout" name="port" placeholder="Укажите время" required pattern="\d{1,5}" >
+</div>
+</div>
+<hr/>
+</div>
+<div id="frame1" class="frame">
+<div class="elem0">
+<div class="left_col">
+<button id="button1">Показать</button>
+</div>
+<div class="right_col">
+Конвейер 1
+</div>
+</div>
+<div id="group1"></div>
+<hr/>
+</div>
+<div id="frame2" class="frame">
+<div class="elem0">
+<div class="left_col">
+<button id="button2">Показать</button>
+</div>
+<div class="right_col">
+Конвейер 2
+</div>
+</div>
+<div id="group2"></div>
+<hr/>
+</div>
+<div id="frame3" class="frame">
+<div class="elem0">
+<div class="left_col">
+<button id="button3">Показать</button>
+</div>
+<div class="right_col">
+Конвейер 3
+</div>
+</div>
+<div id="group3"></div>
+<hr/>
+</div>
+<div id="frame4" class="frame">
+<div class="elem0">
+<div class="left_col">
+<button id="button4">Показать</button>
+</div>
+<div class="right_col">
+<p>Конвейер 4</p>
+</div>
+</div>
+<div id="group4"></div>
+<hr/>
+</div>
+<div style="width:100%;">
+<input type="button" id="save" onclick="SendSettings()" value="Сохранить">
+<input type="button" id="savefile" onclick="SaveFile()" value="Сохранить в файл">
+<input type="file" accept=".json" id="fileinput" onclick="LoadFile()">
+<hr/>
+</div>
+<div id="notice"></div>
+</body>
+<script src="index.js" defer></script>
+</html>

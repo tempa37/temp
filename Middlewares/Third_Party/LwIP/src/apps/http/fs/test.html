@@ -1,0 +1,256 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" href="data:;base64,iVBORw0KGgo=">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style type="text/css">
+body, input, button, select { font-family: Georgia, Times, Times New Roman, sans-serif; font-style: normal; font-size: 15px; color: #1F2833; }
+input[type="text"] { width: 100%; box-sizing: border-box; }
+input[type="button"] { width: 150px; }
+input:invalid { background: #ffd8d8; }
+input:valid { background: #d8ffd8; }
+.hide { height: 0; transition: all 3s; display: none; }
+button { width: 150px; }
+.right_col { width: 40%; }
+.left_col { width: 60%; }
+.frame { display: none; width: 100%; }
+.pident { width: 100%; display: flex; justify-content: space-between; }
+.ident { text-align: center; background-color: #dff2ef; }
+.elem0 { display: flex; width: 100%; margin-bottom: 5px; margin-right: 0px; background-color: #dff2ef;}
+.same { border-radius: 4px; width: 632px; overflow:auto; border:2px dashed #ccc; font-family :Arial,Helvetica; FONT-SIZE: 12px; background-color: rgb(250,250,250);}
+}
+</style>
+<title>Web конфигуратор</title>
+</head>
+<body style="width:640px;">
+<div id="usk" style="width:100%;">
+<hr/>
+<div class="pident">
+<div id="version" class="ident">Версия ПО 0.0.0</div>
+<div id="serial" class="ident">Серийный № 0000</div>
+<div id="mac" class="ident">MAC 00:10:A1:72:00:00</div>
+<div id="uptime" class="ident">000 д 00 ч 00 м 00 c</div>
+</div>
+<hr/>
+<textarea class="same" style=" font-family: monospace; height: 400px;" name="result" id="result" readonly="true" onchange="this.scrollTop=this.scrollHeight">
+</textarea>
+<span style="display:none;" id="t_start_only" name="t_start_only">Начать</span>
+<hr/>
+<div style="width:100%;">
+<input type="button" id="save" onclick="send_request()" value="Тест">
+</div>
+<hr/>
+</div>
+</body>
+<script>
+function n(num, len) {
+return `${num}`.padStart(len, '0');
+}
+function update(state_json, group, category, element, title, keep) {
+document.getElementById("version").innerHTML = "Версия ПО "+state_json.ver;
+document.getElementById("serial").innerHTML = "Серийный № "+n(state_json.ser, 4);
+document.getElementById("mac").innerHTML = "MAC 00:10:A1:71:"+n(state_json.mac1, 2)+":"+n(state_json.mac0, 2);
+let min = state_json.uptm / 60;
+let hour = min / 60;
+let out_time = n(Math.floor(hour / 24), 3) +' д ' + n(Math.floor(hour % 24), 2) +' ч ' +
+n(Math.floor(min % 60), 2) +' м ' + n(Math.floor(state_json.uptm % 60), 2) + " c";
+document.getElementById("uptime").textContent = out_time;
+let element_status=-1;
+let element_name=0;
+let max_count=0;
+let test = document.querySelector('textarea');
+if (!title) {
+test.value += `\nКонвейер N${group+1}\n`;
+title = 1;
+}
+console.log(`группа ${group} категория ${category} элемент ${element}`);
+if (category == 0) {
+let camera_count = Object.keys(state_json.group[group].camera).length;
+max_count = Math.max(max_count, camera_count);
+if (camera_count > element) {
+let camera = state_json.group[group].camera[element];
+element_status = parseInt(camera.s);
+element_name = ` - Камера N${element+1} (${camera.name}, ${camera.ip})`;
+} else {
+category++;
+}
+}
+if (category == 1) {
+let supply_count = Object.keys(state_json.group[group].supply).length;
+max_count = Math.max(max_count, supply_count);
+if (supply_count > element) {
+let supply = state_json.group[group].supply[element];
+element_status = parseInt(supply.s);
+element_name = ` - Источник N${element+1} (${supply.name}, ${supply.ip})`;
+} else {
+category++;
+}
+}
+if (category == 2) {
+let sensor_count = Object.keys(state_json.group[group].sensor).length;
+max_count = Math.max(max_count, sensor_count);
+if (sensor_count > element) {
+let sensor = state_json.group[group].sensor[element];
+element_status = parseInt(sensor.s);
+element_name = ` - Датчик давления N${element+1} (${sensor.name})`;
+} else {
+category++;
+}
+}
+if (category == 3) {
+let relay_count = Object.keys(state_json.group[group].relay).length;
+max_count = Math.max(max_count, relay_count);
+if (relay_count > element) {
+let relay = state_json.group[group].relay[element];
+element_status = parseInt(relay.s);
+element_name = ` - Клапан N${element+1}`;
+} else {
+category++;
+}
+}
+if (category > 3) {
+if (element < 10 && element < max_count) {
+element++;
+category = 0;
+} else {
+element = 0;
+category = 0;
+group++;
+let gCount = Object.keys(state_json.group).length;
+if (group == gCount) {
+test.value += "\nВыполнен\n";
+document.getElementById("save").disabled = false;
+return;
+} else {
+title = 0;
+}
+}
+}
+let point_count = 50;
+// STATE_USE
+if (element_status == 3) {
+console.log(`элемент ${element_name} статус ${element_status}`);
+do {
+element_name +=".";
+} while (element_name.length < point_count);
+if (keep > 20) {
+category++;
+keep = 0;
+test.value += `${element_name} Нет связи\n`;
+} else {
+keep++;
+}
+}
+// STATE_UNDEFINED
+if (element_status == 0) {
+console.log(`элемент ${element_name} статус ${element_status}`);
+do {
+element_name +=".";
+} while (element_name.length < point_count);
+test.value += `${element_name} not use\n`;
+category++;
+keep = 0;
+}
+// STATE_OFFLINE
+if (element_status == 1) {
+console.log(`элемент ${element_name} статус ${element_status}`);
+do {
+element_name +=".";
+} while (element_name.length < point_count);
+test.value += `${element_name} Нет связи\n`;
+category++;
+keep = 0;
+}
+// STATE_ONLINE
+if (element_status == 2) {
+console.log(`элемент ${element_name} статус ${element_status}`);
+do {
+element_name +=".";
+} while (element_name.length < point_count);
+test.value += `${element_name} ОК\n`;
+category++;
+keep = 0;
+}
+setTimeout(process, 2000, group, category, element, title, keep);
+}
+function process(group, category, element, title, keep) {
+let xhr = new XMLHttpRequest();
+xhr.open("GET", "/stageload.json");
+xhr.responseType = "json";
+xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+xhr.timeout = 10000;
+xhr.onload = function() {
+if (xhr.status != 200) {
+console.log("No response received");
+console.log(xhr.status + " : " + xhr.statusText);
+} else {
+console.log("Response received");
+console.log(xhr.response.selftest);
+update(xhr.response, group, category, element, title, keep);
+}
+};
+xhr.onerror = function() {
+console.log("Request failed");
+};
+xhr.send();
+delete xhr;
+}
+function start_testing() {
+document.querySelector('textarea').value = "Запущен процесс тестирования компонентов системы\n";
+document.getElementById("save").disabled = true;
+//setTimeout(process, 2000, 0, 0, 0, 0, 0);
+process(0, 0, 0, 0, 0);
+}
+function send_request() {
+let xhr = new XMLHttpRequest();
+xhr.open("GET", "/selftest");
+xhr.timeout = 10000;
+xhr.onload = function() {
+if (xhr.status != 200) {
+console.log("No response received");
+console.log(xhr.status + " : " + xhr.statusText);
+} else {
+console.log("Response received");
+start_testing();
+}
+};
+xhr.onerror = function() {
+console.log("Request failed");
+};
+xhr.send();
+delete xhr;
+}
+window.onload = function() {
+let xhr = new XMLHttpRequest();
+xhr.open("GET", "/stageload.json");
+xhr.responseType = "json";
+xhr.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+xhr.setRequestHeader("Cache-Control", "no-cache, no-store, max-age=0");
+xhr.timeout = 10000;
+xhr.onload = function() {
+if (xhr.status != 200) {
+console.log("No response received");
+console.log(xhr.status + " : " + xhr.statusText);
+} else {
+console.log("Response received");
+let data_json = xhr.response;
+document.getElementById("version").innerHTML = "Версия ПО "+data_json.ver;
+document.getElementById("serial").innerHTML = "Серийный № "+n(data_json.ser, 4);
+document.getElementById("mac").innerHTML = "MAC 00:10:A1:71:"+n(data_json.mac1, 2)+":"+n(data_json.mac0, 2);
+let min = data_json.uptm / 60;
+let hour = min / 60;
+let out_time = n(Math.floor(hour / 24), 3) +' д ' + n(Math.floor(hour % 24), 2) +' ч ' +
+n(Math.floor(min % 60), 2) +' м ' + n(Math.floor(data_json.uptm % 60), 2) + " c";
+document.getElementById("uptime").textContent = out_time;
+}
+};
+xhr.onerror = function() {
+console.log("Request failed");
+};
+xhr.send();
+delete xhr;
+}
+</script>
+</html>
